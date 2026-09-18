@@ -869,12 +869,12 @@ export class ESheep {
     /* ---- movement ---- */
     let x1 = this.evalExpr(anim.start.x);
     let y1 = this.evalExpr(anim.start.y);
-    const x2 = this.evalExpr(anim.end.x);
+    let x2 = this.evalExpr(anim.end.x);
     const y2 = this.evalExpr(anim.end.y);
 
     if (this.flipped) {
       x1 = -x1;
-      // x2 intentionally NOT negated (matches original behaviour)
+      x2 = -x2;
     }
 
     const steps = this.currentSteps;
