@@ -1,0 +1,80 @@
+:root {
+  color: #273228;
+  background: #f4efe7;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(236, 185, 115, 0.22), transparent 24rem),
+    radial-gradient(circle at 82% 78%, rgba(123, 158, 135, 0.19), transparent 26rem),
+    linear-gradient(135deg, #f8f4ed 0%, #eee6d9 100%);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  opacity: 0.35;
+  background-image: linear-gradient(rgba(39, 50, 40, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(39, 50, 40, 0.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+button { font: inherit; }
+
+.demo-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: clamp(2rem, 8vw, 8rem);
+  align-items: end;
+  width: min(1120px, calc(100% - 48px));
+  min-height: 72vh;
+  margin: 0 auto;
+  padding: 11vh 0 5rem;
+}
+
+.intro-panel { max-width: 700px; animation: reveal 700ms ease-out both; }
+.eyebrow, .panel-kicker, .stage-label { font-family: 'Trebuchet MS', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+.eyebrow { display: flex; align-items: center; gap: 10px; color: #66826f; font-size: 0.72rem; font-weight: 700; }
+.signal-dot { width: 8px; height: 8px; border-radius: 50%; background: #e47e4d; box-shadow: 0 0 0 5px rgba(228, 126, 77, 0.14); }
+h1 { max-width: 680px; margin: 1.2rem 0 1.5rem; color: #273228; font-size: clamp(3.5rem, 8vw, 7.2rem); font-weight: 400; line-height: 0.94; letter-spacing: -0.04em; }
+.intro-copy { max-width: 470px; margin: 0; color: #657066; font-size: 1.14rem; line-height: 1.65; }
+.action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 2.4rem; }
+.button { min-height: 48px; padding: 0.7rem 1.1rem; border: 1px solid #a5b09e; border-radius: 3px; cursor: pointer; font-family: 'Trebuchet MS', sans-serif; font-size: 0.82rem; font-weight: 700; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+.button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(39, 50, 40, 0.12); }
+.button-primary { color: #faf7f0; border-color: #334b3a; background: #334b3a; }
+.button-secondary { color: #334b3a; background: rgba(255, 255, 255, 0.35); }
+.status-line { min-height: 1.5em; margin-top: 1.2rem; color: #879188; font-family: 'Trebuchet MS', sans-serif; font-size: 0.78rem; }
+
+.details-panel { padding: 1.25rem; border-top: 1px solid #a5b09e; animation: reveal 700ms 130ms ease-out both; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.panel-kicker { color: #7a887c; font-size: 0.68rem; font-weight: 700; }
+.version-chip { color: #e47e4d; font-family: 'Trebuchet MS', sans-serif; font-size: 0.75rem; font-weight: 700; }
+.stats-list { margin: 1.5rem 0 0; }
+.stats-list div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid rgba(122, 136, 124, 0.23); }
+dt, dd { margin: 0; font-family: 'Trebuchet MS', sans-serif; font-size: 0.72rem; }
+dt { color: #879188; }
+dd { color: #334b3a; font-weight: 700; text-align: right; }
+.hint-block { display: flex; gap: 10px; margin-top: 2rem; color: #68746a; font-family: 'Trebuchet MS', sans-serif; font-size: 0.72rem; line-height: 1.5; }
+.hint-block p { margin: 0; }
+.hint-mark { display: grid; flex: 0 0 20px; place-items: center; width: 20px; height: 20px; border: 1px solid #e47e4d; border-radius: 50%; color: #e47e4d; font-weight: 700; }
+code { color: #334b3a; font-size: 0.9em; }
+.stage-label { width: min(1120px, calc(100% - 48px)); margin: 0 auto 1.6rem; color: #9ca79c; font-size: 0.64rem; text-align: right; }
+
+@keyframes reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 720px) {
+  .demo-shell { grid-template-columns: 1fr; align-items: start; width: min(100% - 36px, 560px); padding-top: 7rem; }
+  h1 { font-size: clamp(3.5rem, 17vw, 6rem); }
+  .details-panel { max-width: 400px; }
+  .stage-label { width: calc(100% - 36px); }
+}

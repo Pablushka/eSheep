@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4efe7" />
+    <title>eSheep / Desktop Pet</title>
+  </head>
+  <body>
+    <main class="demo-shell">
+      <section class="intro-panel" aria-labelledby="page-title">
+        <div class="eyebrow"><span class="signal-dot"></span> DesktopPet.ts / live demo</div>
+        <h1 id="page-title">A tiny friend for your browser.</h1>
+        <p class="intro-copy">
+          Put a little eSheep on the page. Drag it around, click for its info card,
+          or let a small flock wander across the viewport.
+        </p>
+        <div class="action-row">
+          <button class="button button-primary" id="start-button" type="button">Bring out a sheep</button>
+          <button class="button button-secondary" id="clear-button" type="button">Clear the page</button>
+        </div>
+        <p class="status-line" id="status-line" aria-live="polite">Ready for a little company.</p>
+      </section>
+
+      <aside class="details-panel" aria-label="Demo details">
+        <div class="panel-heading">
+          <span class="panel-kicker">Under the hood</span>
+          <span class="version-chip">v0.8</span>
+        </div>
+        <dl class="stats-list">
+          <div><dt>Instance count</dt><dd id="pet-count">0</dd></div>
+          <div><dt>Animation source</dt><dd>eSheep XML</dd></div>
+          <div><dt>Positioning</dt><dd>GPU transforms</dd></div>
+        </dl>
+        <div class="hint-block">
+          <span class="hint-mark">i</span>
+          <p>Each sheep is a real <code>ESheep</code> instance from the library, not a page decoration.</p>
+        </div>
+      </aside>
+    </main>
+    <div class="stage-label" aria-hidden="true">The floor is wherever you leave it.</div>
+    <script type="module" src="/demo.ts"></script>
+  </body>
+</html>
