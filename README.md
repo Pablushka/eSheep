@@ -13,6 +13,21 @@ pnpm dev
 
 Open the local URL printed by Vite. The page imports `DesktopPet.ts` directly, starts one sheep automatically, and includes controls for adding and clearing instances.
 
+## Chromium extension
+
+Build the project, then load the repository folder as an unpacked extension:
+
+```sh
+pnpm run build
+```
+
+1. Open `chrome://extensions` or `edge://extensions`.
+2. Enable Developer mode.
+3. Choose **Load unpacked** and select this project folder.
+4. Open or refresh a web page. The sheep will roam in the viewport.
+
+Use the extension popup to pause or resume the sheep across open pages. The animation XML and embedded sprite are stored locally in `animation.xml`, so the extension does not need the eSheep website at runtime.
+
 # Original Credits
 
 This is a refactor of ...

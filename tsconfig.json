@@ -9,5 +9,5 @@
     "lib": ["ES2020", "DOM"],
     "skipLibCheck": true
   },
-  "include": ["DesktopPet.ts", "demo.ts"]
+  "include": ["DesktopPet.ts", "demo.ts", "content.ts", "popup.ts"]
 }

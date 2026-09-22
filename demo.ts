@@ -1,7 +1,8 @@
 import { ESheep } from './DesktopPet';
-import './demo.css';
+// import './demo.css';
 
 const ANIMATION_URL = 'https://esheep.petrucci.ch/script/animation.php';
+const MIMIKO_ANIMATIONS_XML = 'https://raw.githubusercontent.com/Adrianotiger/desktopPet/refs/heads/master/Pets/mimiko/animations.xml';
 const pets: ESheep[] = [];
 
 const startButton = document.querySelector<HTMLButtonElement>('#start-button');
@@ -23,7 +24,7 @@ async function addPet(): Promise<void> {
   updateCount();
   updateStatus('Waking up a sheep...');
 
-  await pet.Start(ANIMATION_URL);
+  await pet.Start();
   updateStatus(`${pets.length} ${pets.length === 1 ? 'sheep is' : 'sheep are'} exploring the page.`);
 }
 

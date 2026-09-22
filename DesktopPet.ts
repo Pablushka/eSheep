@@ -10,8 +10,8 @@
 
 export const VERSION = '0.8';
 const ACTIVATE_DEBUG = false;
-const DEFAULT_XML = 'https://esheep.petrucci.ch/script/animation.php';
-const COLLISION_WITH = ['div', 'hr'] as const;
+const DEFAULT_XML = './animation.xml';
+const COLLISION_WITH = ['div', 'hr', 'aside' ] as const;
 
 /* ------------------------------------------------------------------ */
 /* Expression evaluation                                               */
@@ -396,7 +396,7 @@ export class ESheep {
       `height:${this.imageH}px`,
       'overflow:hidden',
       'cursor:move',
-      'z-index:2000',
+      'z-index:2147483647',
       'will-change:transform',
       'contain:layout paint',
       'user-select:none',
