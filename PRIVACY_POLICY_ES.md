@@ -30,4 +30,4 @@ Si esta política cambia en algún momento, la versión actualizada se publicar�
 
 ## Contacto
 
-Si tienes alguna pregunta sobre esta política, contacta con el desarrollador en: **[tu correo de contacto]**
+Si tienes alguna pregunta sobre esta política, contacta con el desarrollador en: https://github.com/Pablushka/eSheep/issues

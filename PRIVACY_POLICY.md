@@ -30,4 +30,4 @@ If this policy ever changes, the updated version will be posted here.
 
 ## Contact
 
-If you have any questions about this policy, please contact the developer at: **[your contact email]**
+If you have any questions about this policy, please contact the developer at: https://github.com/Pablushka/eSheep/issues
