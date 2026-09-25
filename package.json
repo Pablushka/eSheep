@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build && vite build --config vite.extension.config.ts && vite build --config vite.popup.config.ts",
     "preview": "vite preview",
-    "icons": "node scripts/extract-icon.mjs"
+    "icons": "node scripts/extract-icon.mjs",
+    "zip": "bash scripts/package.sh"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
