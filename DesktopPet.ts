@@ -11,7 +11,37 @@
 export const VERSION = '0.8';
 const ACTIVATE_DEBUG = false;
 const DEFAULT_XML = './animation.xml';
-const COLLISION_WITH = ['div', 'hr', 'aside' ] as const;
+const COLLISION_WITH = [
+  'div', 'hr', 'aside',
+  'section', 'article', 'header', 'footer', 'nav', 'main',
+  'figure', 'fieldset', 'details', 'summary', 'li', 'blockquote',
+] as const;
+
+/**
+ * True when the element has a visible top edge the pet can stand on:
+ * a real border-top, or a non-transparent background. Modern pages rarely
+ * draw layout boxes with borders, so falling back to backgrounds lets the
+ * pet land on cards, headers, sections, etc.
+ */
+function isSurfaceElement(el: HTMLElement): boolean {
+  const style = getComputedStyle(el);
+  if (style.display === 'none' || style.visibility === 'hidden') return false;
+
+  const borderTopWidth = parseFloat(style.borderTopWidth) || 0;
+  if (borderTopWidth > 0 &&
+      style.borderTopStyle !== 'none' &&
+      style.borderTopStyle !== 'hidden' &&
+      !isTransparentColor(style.borderTopColor)) {
+    return true;
+  }
+
+  return !isTransparentColor(style.backgroundColor);
+}
+
+function isTransparentColor(color: string): boolean {
+  const c = color.trim().toLowerCase().replace(/\s+/g, '');
+  return c === '' || c === 'transparent' || c === 'rgba(0,0,0,0)';
+}
 
 /* ------------------------------------------------------------------ */
 /* Expression evaluation                                               */
@@ -1044,10 +1074,7 @@ export class ESheep {
 
       if (y > rect.top - 2 && y < rect.top + margin &&
           x > rect.left && x < rect.right - maxX) {
-        const style = getComputedStyle(el);
-        if (style.display !== 'none' &&
-            style.borderTopStyle !== '' &&
-            style.borderTopStyle !== 'none') {
+        if (isSurfaceElement(el)) {
           return el;
         }
       }
