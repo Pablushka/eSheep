@@ -47,7 +47,19 @@ if ! command -v zip >/dev/null 2>&1; then
   exit 1
 fi
 
-version="$(node -p "require('./manifest.json').version" 2>/dev/null || echo 'unknown')"
+# Bump the last segment of the manifest version (e.g. 0.0.0.1 -> 0.0.0.2)
+# so every package build produces a fresh version.
+version="$(node -e '
+const fs = require("fs");
+let text = fs.readFileSync("manifest.json", "utf8");
+const manifest = JSON.parse(text);
+const parts = manifest.version.split(".");
+parts[parts.length - 1] = String(parseInt(parts[parts.length - 1], 10) + 1);
+manifest.version = parts.join(".");
+text = text.replace(/("version"\s*:\s*")[^"]*(")/, (m, p1, p2) => p1 + manifest.version + p2);
+fs.writeFileSync("manifest.json", text);
+process.stdout.write(manifest.version);
+')"
 out="esheep-v${version}.zip"
 
 rm -f "$out"
