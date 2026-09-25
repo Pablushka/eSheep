@@ -5,6 +5,11 @@ const ANIMATION_URL = chrome.runtime.getURL('animation.xml');
 declare const chrome: {
   runtime: {
     getURL(path: string): string;
+    onMessage: {
+      addListener(
+        callback: (message: unknown, sender: unknown, sendResponse: unknown) => void,
+      ): void;
+    };
   };
   storage: {
     local: {
@@ -40,6 +45,14 @@ void chrome.storage.local.get({ enabled: true }).then(({ enabled = true }) => {
 chrome.storage.onChanged.addListener((changes) => {
   const enabled = changes.enabled?.newValue;
   if (enabled !== undefined) void syncSheep(enabled);
+});
+
+// Play a specific animation when requested by the popup.
+chrome.runtime.onMessage.addListener((message: unknown) => {
+  const msg = message as { type?: string; name?: string };
+  if (msg?.type === 'play-animation' && typeof msg.name === 'string') {
+    sheep?.PlayAnimation(msg.name);
+  }
 });
 
 

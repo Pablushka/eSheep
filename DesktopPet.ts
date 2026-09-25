@@ -582,6 +582,22 @@ export class ESheep {
     this.destroy();
   }
 
+  /**
+   * Immediately play the animation whose XML `<name>` matches `name`
+   * (e.g. "walk", "fall", "drag", "jump"). Unknown names are ignored.
+   */
+  PlayAnimation(name: string): void {
+    if (this.destroyed || !this.config) return;
+
+    const anim = this.findAnimationByName(name);
+    if (!anim) return;
+
+    this.walkSurface = null;
+    this.setAnimation(anim.id);
+    // Kick the frame loop so the new animation starts right away.
+    this.schedule(0);
+  }
+
   /* ---------------------------------------------------------------- */
   /* Setup / teardown                                                 */
   /* ---------------------------------------------------------------- */
