@@ -50,6 +50,13 @@ pnpm zip
 
 This builds the extension and writes `esheep-v<version>.zip`, ready to upload at the [Chrome Web Store developer console](https://chrome.google.com/webstore/devconsole).
 
+## Privacy
+
+The extension does not collect, store, share, or sell any user data.
+
+- [Privacy Policy (English)](PRIVACY_POLICY.md)
+- [Política de Privacidad (Español)](PRIVACY_POLICY_ES.md)
+
 ## For developers
 
 This is a modern TypeScript port of the web version of `DesktopPet.js`. The public API is unchanged — `new ESheep()` followed by `pet.Start(url)` — while the internals have been modernized:
