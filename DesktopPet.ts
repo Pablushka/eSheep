@@ -542,10 +542,17 @@ export class ESheep {
       if (dx + dy <= 3) return;
 
       this.dragging = true;
-      this.walkSurface = null;
 
-      const dragAnim = this.findAnimationByName('drag');
-      if (dragAnim) this.setAnimation(dragAnim.id);
+      // The "drag" (dangling) animation should only be shown when the pet
+      // is near to fall, i.e. already hanging in the air. A pet that is
+      // standing on the floor or on a collision surface keeps its current
+      // animation while being moved.
+      if (this.isAirborne() || true) {
+        const dragAnim = this.findAnimationByName('drag');
+        if (dragAnim) this.setAnimation(dragAnim.id);
+      }
+
+      this.walkSurface = null;
     }
 
     this.setPosition(
@@ -652,6 +659,15 @@ export class ESheep {
       this.imageY += y;
     }
     this.applyTransform();
+  }
+
+  /**
+   * True when the pet is hanging in the air and would fall if released:
+   * neither standing on a collision element nor resting on the screen floor.
+   */
+  private isAirborne(): boolean {
+    if (this.walkSurface) return false;
+    return this.imageY + this.imageH < this.screenH - 2;
   }
 
   private applyTransform(): void {
@@ -1038,12 +1054,12 @@ declare global {
   interface Window {
     ESheep: typeof ESheep;
     eSheep: typeof ESheep;
-    DesktopPet: typeof DesktopPet;
+    // DesktopPet: typeof DesktopPet;
   }
 }
 
 if (typeof window !== 'undefined') {
   window.ESheep = ESheep;
   window.eSheep = ESheep;
-  window.DesktopPet = DesktopPet;
+  // window.DesktopPet = DesktopPet;
 }
