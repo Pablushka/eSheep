@@ -5,10 +5,10 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     lib: {
-      entry: resolve(__dirname, 'content.ts'),
-      name: 'ESheepContent',
+      entry: resolve(__dirname, 'popup.ts'),
+      name: 'ESheepPopup',
       formats: ['iife'],
-      fileName: () => 'content.js',
+      fileName: () => 'popup.js',
     },
   },
 });

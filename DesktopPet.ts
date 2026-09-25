@@ -17,42 +17,254 @@ const COLLISION_WITH = ['div', 'hr', 'aside' ] as const;
 /* Expression evaluation                                               */
 /*                                                                     */
 /* The original used eval() + repeated string.replace() on every frame.*/
-/* Here we compile each unique expression once into a Function and     */
-/* cache it. Constant expressions are evaluated exactly once.          */
+/* Manifest V3 content scripts forbid eval/new Function (there is no   */
+/* 'unsafe-eval' in their CSP), so each unique expression is compiled  */
+/* once into a tiny AST and evaluated with a CSP-safe recursive-       */
+/* descent parser. Constant expressions are evaluated exactly once.    */
 /* ------------------------------------------------------------------ */
 
-const EXPR_VARS = [
-  'screenW', 'screenH',
-  'areaW', 'areaH',
-  'imageW', 'imageH',
-  'random', 'randS',
-  'imageX', 'imageY',
-] as const;
+interface ExprVars {
+  screenW: number;
+  screenH: number;
+  areaW: number;
+  areaH: number;
+  imageW: number;
+  imageH: number;
+  random: number;
+  randS: number;
+  imageX: number;
+  imageY: number;
+}
 
-type ExprFn = (...args: number[]) => number;
+type ExprNode =
+  | { type: 'num'; value: number }
+  | { type: 'var'; name: string }
+  | { type: 'un'; op: '+' | '-'; arg: ExprNode }
+  | { type: 'bin'; op: '+' | '-' | '*' | '/' | '%'; left: ExprNode; right: ExprNode }
+  | { type: 'call'; name: string; args: ExprNode[] };
 
-const exprCache = new Map<string, ExprFn>();
-const constExprCache = new Map<string, number>();
-const CONST_EXPR_RE = /^[\d\s+\-*/().]+$/;
+type ExprToken =
+  | { type: 'num'; value: number }
+  | { type: 'ident'; value: string }
+  | { type: 'op'; value: string };
 
-function compileExpr(expr: string): ExprFn {
-  let fn = exprCache.get(expr);
-  if (fn) return fn;
+function tokenizeExpr(expr: string): ExprToken[] {
+  const tokens: ExprToken[] = [];
+  let i = 0;
 
-  const trimmed = expr.trim();
-  if (!trimmed) {
-    fn = () => 0;
-  } else {
-    try {
-      // Parameters shadow globals (notably `random`) – no string surgery needed.
-      fn = new Function(...EXPR_VARS, `"use strict";return (${trimmed});`) as ExprFn;
-    } catch (err) {
-      console.error(`Unable to compile expression: "${expr}"`, err);
-      fn = () => 0;
+  while (i < expr.length) {
+    const c = expr[i];
+
+    if (/\s/.test(c)) {
+      i++;
+      continue;
+    }
+
+    // Number literal (integer or decimal).
+    if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(expr[i + 1] ?? ''))) {
+      let j = i;
+      while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
+      const value = Number(expr.slice(i, j));
+      tokens.push({ type: 'num', value: Number.isFinite(value) ? value : 0 });
+      i = j;
+      continue;
+    }
+
+    // Identifier (variable name, or a type name such as System.Int32).
+    if (/[A-Za-z_]/.test(c)) {
+      let j = i;
+      while (j < expr.length && /[A-Za-z0-9_.]/.test(expr[j])) j++;
+      tokens.push({ type: 'ident', value: expr.slice(i, j) });
+      i = j;
+      continue;
+    }
+
+    if ('+-*/%(),'.includes(c)) {
+      tokens.push({ type: 'op', value: c });
+      i++;
+      continue;
+    }
+
+    // Unknown character: skip it so a typo can't crash the whole loop.
+    i++;
+  }
+
+  return tokens;
+}
+
+class ExprParser {
+  private pos = 0;
+
+  constructor(private readonly tokens: ExprToken[]) {}
+
+  parse(): ExprNode {
+    const node = this.parseExpression();
+    if (this.pos < this.tokens.length) {
+      throw new Error(`Unexpected token: "${this.tokens[this.pos].value}"`);
+    }
+    return node;
+  }
+
+  private peek(): ExprToken | undefined {
+    return this.tokens[this.pos];
+  }
+
+  private consume(): ExprToken {
+    const token = this.tokens[this.pos++];
+    if (!token) throw new Error('Unexpected end of expression');
+    return token;
+  }
+
+  private parseExpression(): ExprNode {
+    let left = this.parseTerm();
+    for (;;) {
+      const t = this.peek();
+      if (t?.type === 'op' && (t.value === '+' || t.value === '-')) {
+        this.consume();
+        left = { type: 'bin', op: t.value as '+' | '-', left, right: this.parseTerm() };
+      } else {
+        return left;
+      }
     }
   }
-  exprCache.set(expr, fn);
-  return fn;
+
+  private parseTerm(): ExprNode {
+    let left = this.parseUnary();
+    for (;;) {
+      const t = this.peek();
+      if (t?.type === 'op' && (t.value === '*' || t.value === '/' || t.value === '%')) {
+        this.consume();
+        left = { type: 'bin', op: t.value as '*' | '/' | '%', left, right: this.parseUnary() };
+      } else {
+        return left;
+      }
+    }
+  }
+
+  private parseUnary(): ExprNode {
+    const t = this.peek();
+    if (t?.type === 'op' && (t.value === '+' || t.value === '-')) {
+      this.consume();
+      return { type: 'un', op: t.value as '+' | '-', arg: this.parseUnary() };
+    }
+    return this.parsePrimary();
+  }
+
+  private parsePrimary(): ExprNode {
+    const t = this.consume();
+
+    if (t.type === 'num') return { type: 'num', value: t.value };
+
+    if (t.type === 'ident') {
+      const nextTok = this.peek();
+      if (nextTok?.type === 'op' && nextTok.value === '(') {
+        return this.parseCall(t.value);
+      }
+      return { type: 'var', name: t.value };
+    }
+
+    if (t.type === 'op' && t.value === '(') {
+      const inner = this.parseExpression();
+      const close = this.consume();
+      if (close.type !== 'op' || close.value !== ')') {
+        throw new Error('Expected ")"');
+      }
+      return inner;
+    }
+
+    throw new Error(`Unexpected token: "${t.value}"`);
+  }
+
+  private parseCall(name: string): ExprNode {
+    this.consume(); // consume '('
+    const args: ExprNode[] = [this.parseExpression()];
+
+    for (;;) {
+      const t = this.peek();
+      if (t?.type === 'op' && t.value === ',') {
+        this.consume();
+        args.push(this.parseExpression());
+      } else if (t?.type === 'op' && t.value === ')') {
+        this.consume();
+        break;
+      } else {
+        throw new Error('Expected "," or ")"');
+      }
+    }
+
+    return { type: 'call', name, args };
+  }
+}
+
+function evalNode(node: ExprNode, vars: ExprVars): number {
+  switch (node.type) {
+    case 'num':
+      return node.value;
+
+    case 'var':
+      return (vars as unknown as Record<string, number>)[node.name] ?? 0;
+
+    case 'un': {
+      const value = evalNode(node.arg, vars);
+      return node.op === '-' ? -value : value;
+    }
+
+    case 'bin': {
+      const left = evalNode(node.left, vars);
+      const right = evalNode(node.right, vars);
+      switch (node.op) {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '/': return right === 0 ? 0 : left / right;
+        case '%': return right === 0 ? 0 : left % right;
+        default: return 0;
+      }
+    }
+
+    case 'call':
+      // `Convert(x, System.Int32)` — round to the nearest integer.
+      if (node.name === 'Convert' && node.args.length > 0) {
+        return Math.round(evalNode(node.args[0], vars));
+      }
+      return 0;
+
+    default:
+      return 0;
+  }
+}
+
+const astCache = new Map<string, ExprNode>();
+const constExprCache = new Map<string, number>();
+const CONST_EXPR_RE = /^[\d\s+\-*/().%]+$/;
+
+const ZERO_VARS: ExprVars = {
+  screenW: 0,
+  screenH: 0,
+  areaW: 0,
+  areaH: 0,
+  imageW: 0,
+  imageH: 0,
+  random: 0,
+  randS: 0,
+  imageX: 0,
+  imageY: 0,
+};
+
+function compileExpr(expr: string): ExprNode {
+  const trimmed = expr.trim();
+  let node = astCache.get(trimmed);
+  if (node) return node;
+
+  try {
+    node = new ExprParser(tokenizeExpr(trimmed)).parse();
+  } catch (err) {
+    console.error(`Unable to compile expression: "${expr}"`, err);
+    node = { type: 'num', value: 0 };
+  }
+
+  astCache.set(trimmed, node);
+  return node;
 }
 
 /* ------------------------------------------------------------------ */
@@ -620,26 +832,26 @@ export class ESheep {
     if (CONST_EXPR_RE.test(expr)) {
       let v = constExprCache.get(expr);
       if (v === undefined) {
-        v = compileExpr(expr)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        v = evalNode(compileExpr(expr), ZERO_VARS);
         constExprCache.set(expr, v);
       }
       return v;
     }
 
     try {
-      return compileExpr(expr)(
-        this.screenW,
-        this.screenH,
+      return evalNode(compileExpr(expr), {
+        screenW: this.screenW,
+        screenH: this.screenH,
         // @compat: original mapped areaW -> screenH (likely a bug); preserved.
-        this.screenW,
-        this.screenH,
-        this.imageW,
-        this.imageH,
-        Math.random() * 100,
-        this.randS,
-        this.imageX,
-        this.imageY,
-      );
+        areaW: this.screenW,
+        areaH: this.screenH,
+        imageW: this.imageW,
+        imageH: this.imageH,
+        random: Math.random() * 100,
+        randS: this.randS,
+        imageX: this.imageX,
+        imageY: this.imageY,
+      });
     } catch (err) {
       console.error(`Unable to parse this position: \n'${expr}'`, err);
       return 0;

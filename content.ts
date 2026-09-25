@@ -2,10 +2,6 @@ import { ESheep } from './DesktopPet';
 
 const ANIMATION_URL = chrome.runtime.getURL('animation.xml');
 
-declare const pepe: {
-  someProperty: string;
-}
-
 declare const chrome: {
   runtime: {
     getURL(path: string): string;
@@ -34,10 +30,6 @@ async function syncSheep(enabled: boolean): Promise<void> {
     sheep = null;
   }
 }
-
-void syncSheep(true).catch((error: unknown) => {
-  console.error('eSheep could not start on this page:', error);
-});
 
 void chrome.storage.local.get({ enabled: true }).then(({ enabled = true }) => {
   return syncSheep(enabled);
