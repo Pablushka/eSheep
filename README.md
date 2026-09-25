@@ -1,52 +1,67 @@
-# DesktopPet.js
+<p align="center">
+  <img src="assets/banner-small.png" alt="eSheep — a tiny sheep that roams your browser" width="100%" />
+</p>
 
-This is a modern TypeScript port of `DesktopPet.js`. It keeps the same public API (`new ESheep()` / `pet.Start(url)`) while replacing the older patterns with typed models, compiled expressions, pointer events, cached DOM lookups, and GPU‑friendly transforms.
+# eSheep 🐑
 
-## Demo
+A tiny pixel-art sheep that lives in your browser. It wanders around the page, hops onto headings and cards, naps in the corner, munches on things, and generally brightens up whatever you're browsing — as a Chromium extension.
 
-The repository includes a small Vite demo page in `index.html`.
+Bring a little company to the web. 🌱
+
+## What it does
+
+- 🐑 **Roams freely** — the sheep walks across any page you open.
+- 🧱 **Knows your layout** — it lands on and walks along cards, headers, sections and borders.
+- 🖱️ **Can be dragged** — grab it with the mouse and drop it anywhere.
+- 🎬 **Has lots of animations** — walk, run, jump, sleep, eat, fall… try them all from the popup.
+- 🎚️ **Easy on / off** — pause or resume the sheep from the extension popup.
+
+## Try the demo
+
+The repo includes a small Vite demo page so you can meet the sheep without installing the extension:
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by Vite. The page imports `DesktopPet.ts` directly, starts one sheep automatically, and includes controls for adding and clearing instances.
+Open the URL printed by Vite. A sheep starts roaming right away — use the buttons to add more sheep or clear the page.
 
-## Chromium extension
-
-Build the project, then load the repository folder as an unpacked extension:
+## Install the extension
 
 ```sh
 pnpm run build
 ```
 
-1. Open `chrome://extensions` or `edge://extensions`.
-2. Enable Developer mode.
-3. Choose **Load unpacked** and select this project folder.
-4. Open or refresh a web page. The sheep will roam in the viewport.
+1. Open `chrome://extensions` (or `edge://extensions`).
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and select this folder.
+4. Open or refresh any web page — the sheep will wander in.
 
-Use the extension popup to pause or resume the sheep across open pages. The animation XML and embedded sprite are stored locally in `animation.xml`, so the extension does not need the eSheep website at runtime.
+The animation data and the sprite are bundled inside `animation.xml`, so the extension works offline with no external requests.
 
-# Original Credits
+## Publish to the Chrome Web Store
 
-This is a refactor of ...
+A packaging script produces a store-ready ZIP with `manifest.json` at its root:
 
+```sh
+pnpm zip
+```
 
-# Key changes at a glance
+This builds the extension and writes `esheep-v<version>.zip`, ready to upload at the [Chrome Web Store developer console](https://chrome.google.com/webstore/devconsole).
 
-| Area | Before | After |
-|---|---|---|
-| Types | plain JS, `var`, no types | typed interfaces for XML model, `const`/`let` |
-| XML parsing | re‑queried DOM every frame | parsed once into a `Map<string, AnimationDef>` |
-| Config loading | one XHR per sheep | `fetch` + `Promise` cache, sprite shared across sheep |
-| Expressions | `eval()` + regex `replace()` per call | `Function` compiled once, constant sub‑expressions cached |
-| Positioning | `style.left` / `style.top` | `transform: translate3d(...)` (composited, no layout) |
-| Animation loop | `setTimeout` chain | `setTimeout` → `requestAnimationFrame` for paint‑aligned updates |
-| Collisions | `getElementsByTagName` + rects each frame | element list cached, invalidated by `MutationObserver` |
-| Resize | broken `document.body` listener | `window` resize + rAF throttling |
-| Dragging | mouse events + manual bounds | pointer events + pointer capture + drag threshold |
-| Cleanup | none | `Destroy()` detaches listeners, disconnects observers, removes nodes |
-| Bug fixes | spawn probability always read `spawns[0]`; `areaW` mapped to `screenH`; `<b>` lost via `appendChild` return; fractional deltas truncated by `parseInt` | fixed (compat note kept for `areaW`) |
+## For developers
 
-The `areaW` → `screenH` mapping was kept intentionally (with a `@compat` comment) so existing animation XMLs behave identically; flip it to `screenW` if you control all the XML files.
+This is a modern TypeScript port of the web version of `DesktopPet.js`. The public API is unchanged — `new ESheep()` followed by `pet.Start(url)` — while the internals have been modernized:
+
+- Typed XML model parsed once into a `Map` (no per-frame DOM queries).
+- Expressions compiled once and cached instead of `eval()` on every frame.
+- `transform: translate3d(...)` positioning (GPU-composited, no layout thrash).
+- Pointer events with drag support, plus a small drag threshold.
+- Collision detection that follows the real page layout (borders and backgrounds).
+- `Destroy()` cleans up the DOM, listeners and observers.
+
+## Credits
+
+- **eSheep** — the original desktop pet by [Adriano Petrucci](https://esheep.petrucci.ch).
+- This repository is a TypeScript port and extension wrapper of the web version.
